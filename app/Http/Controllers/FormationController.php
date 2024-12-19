@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Formation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class FormationController extends Controller
@@ -50,6 +51,7 @@ class FormationController extends Controller
                     }
                 }
             ],
+            'videoId' => 'nullable|string'
         ]);
 
         // Gérer l'upload de l'image
@@ -67,7 +69,7 @@ class FormationController extends Controller
             $formation = Formation::create(array_merge($validatedData, ['photo' => $photoPath]));
             return response()->json($formation, 201);
         } catch (\Exception $e) {
-            \Log::error('Formation creation failed: ' . $e->getMessage());
+            Log::error('Formation creation failed: ' . $e->getMessage());
             return response()->json(['error' => 'Internal Server Error'], 500);
         }
     }
@@ -77,7 +79,7 @@ class FormationController extends Controller
      */
     public function show(string $id)
     {
-        $formation = Formation::with('category')->findOrFail($id);
+        $formation = Formation::with('category', 'comments')->findOrFail($id);
         // Ajouter l'URL complète pour l'image si elle existe
         if ($formation->photo) {
             // Si la photo est un fichier local
@@ -85,7 +87,10 @@ class FormationController extends Controller
                 $formation->photo = asset('storage/' . $formation->photo);
             }
         }
-        return response()->json($formation, 200);
+        return response()->json([
+            'course' => $formation,
+            'comments' => $formation->comments
+        ], 200);
     }
 
 
@@ -125,6 +130,7 @@ class FormationController extends Controller
                     }
                 }
             ],
+            'videoId' => 'nullable|string'
         ]);
 
         // Si une nouvelle photo est envoyée
