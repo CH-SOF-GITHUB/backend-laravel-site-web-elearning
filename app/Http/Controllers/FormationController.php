@@ -88,8 +88,7 @@ class FormationController extends Controller
             }
         }
         return response()->json([
-            'course' => $formation,
-            'comments' => $formation->comments
+            'course' => $formation
         ], 200);
     }
 

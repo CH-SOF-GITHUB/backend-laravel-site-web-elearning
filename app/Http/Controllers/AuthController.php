@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -47,10 +48,11 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth('api')->factory()->getTTL() * 60, // Token expiration time in seconds
+            'expires_in' => JWTAuth::factory()->getTTL() * 60, // Token expiration time in seconds
             'user' => $user // Include user information
         ]);
     }
+
 
     public function me()
     {
@@ -68,13 +70,13 @@ class AuthController extends Controller
     {
         try {
             $token = JWTAuth::parseToken();
-            \Log::info('Current Token:', ['token' => $token]); // Log du token reçu
+            Log::info('Current Token:', ['token' => $token]); // Log du token reçu
             $refreshedToken = $token->refresh();
-            \Log::info('Refreshed Token:', ['refreshed_token' => $refreshedToken]); // Log du token rafraîchi
+            Log::info('Refreshed Token:', ['refreshed_token' => $refreshedToken]); // Log du token rafraîchi
 
             return $this->respondWithToken($refreshedToken);
         } catch (JWTException $e) {
-            \Log::error('Token refresh failed: ', ['error' => $e->getMessage()]);
+            Log::error('Token refresh failed: ', ['error' => $e->getMessage()]);
             return response()->json(['error' => 'Token not provided or invalid'], 400);
         }
     }

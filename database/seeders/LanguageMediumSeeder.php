@@ -13,11 +13,8 @@ class LanguageMediumSeeder extends Seeder
      */
     public function run(): void
     {
-        LanguageMedium::insert([
-            ['language_name' => 'English', 'code' => 'en'],
-            ['language_name' => 'French', 'code' => 'fr'],
-            ['language_name' => 'Spanish', 'code' => 'es'],
-            ['language_name' => 'German', 'code' => 'de']
-        ]);
+        LanguageMedium::create(['language_name' => 'English', 'code' => 'en']);
+        LanguageMedium::create(['language_name' => 'French', 'code' => 'fr']);
+        LanguageMedium::create(['language_name' => 'Spanish', 'code' => 'es']);
     }
 }

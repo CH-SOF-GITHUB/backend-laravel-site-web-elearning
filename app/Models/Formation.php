@@ -23,6 +23,12 @@ class Formation extends Model
         return $this->hasMany(Comment::class);
     }
 
+    // Relation avec Enrollment
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class);
+    }
+    
     // Relationship with Inscription
     public function inscriptions()
     {

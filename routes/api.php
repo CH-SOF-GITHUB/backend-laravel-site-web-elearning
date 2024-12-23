@@ -4,6 +4,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\FormationController;
 use App\Http\Controllers\InscriptionController;
 use App\Http\Controllers\LanguageMediumController;
@@ -26,31 +27,36 @@ Route::group([
     Route::post('/profile', [AuthController::class, 'me'])->middleware('auth:api')->name('api.me');
 
     Route::middleware('auth:api')->prefix('user')->group(function () {
-        Route::prefix('courses/{courseId}')->group(function() {
+        Route::prefix('courses/{courseId}')->group(function () {
             // Récupère tous les commentaires pour un cours
             Route::get('comments', [CommentController::class, 'index']);
             // Ajouter un commentaire à un cours
-            Route::post('comments', [CommentController::class, 'store']);      
+            Route::post('comments', [CommentController::class, 'store']);
             // Supprimer un commentaire spécifique
             Route::delete('comments/{commentId}', [CommentController::class, 'destroy']);
+            // Inscription à un cours GET
+            Route::get('enroll', [EnrollmentController::class, 'index']);
+            // Inscription à un cours POST
+            Route::post('enroll', [EnrollmentController::class, 'store']);
         });
         Route::get('categories', [CategoryController::class, 'index']); // Specify method
         Route::get('courses', [FormationController::class, 'index']);
+        Route::get('courses/{courseId}', [FormationController::class, 'show']);
         Route::get('inscriptions', [InscriptionController::class, 'index']); // Specify method
         Route::get('books', [BookController::class, 'index']); // Specify method
     });
 
     Route::middleware('auth:api')->prefix('admin')->group(function () {
-        Route::prefix('courses/{courseId}')->group(function() {
+        Route::prefix('courses/{courseId}')->group(function () {
             // Récupère tous les commentaires pour un cours
             Route::get('comments', [CommentController::class, 'index']);
-        
+
             // Ajouter un commentaire à un cours
             Route::post('comments', [CommentController::class, 'store']);
-        
+
             // Supprimer un commentaire spécifique
             Route::delete('comments/{commentId}', [CommentController::class, 'destroy']);
-            
+
             // afficher un commentaire par id 
             Route::get('comments/{commentId}', [CommentController::class, 'show']);
         });

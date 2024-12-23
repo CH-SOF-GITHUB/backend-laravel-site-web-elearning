@@ -14,4 +14,10 @@ class LanguageMedium extends Model
 
     // Add fillable attributes
     protected $fillable = ['language_name', 'code'];
+
+    // Relation avec Enrollment
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class, 'language_id');
+    }
 }
