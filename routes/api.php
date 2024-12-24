@@ -28,7 +28,9 @@ Route::group([
 
     Route::middleware('auth:api')->prefix('user')->group(function () {
         // Récupère tous les languges pour un cours
-        Route::get('/list_language_mediums', [LanguageMediumController::class, 'index']);        
+        Route::get('/list_language_mediums', [LanguageMediumController::class, 'index']); 
+        // Inscription à un cours GET
+        Route::get('enrolled_courses', [EnrollmentController::class, 'allEnrolls']);       
         Route::prefix('courses/{courseId}')->group(function () {
             // Récupère tous les commentaires pour un cours
             Route::get('comments', [CommentController::class, 'index']);

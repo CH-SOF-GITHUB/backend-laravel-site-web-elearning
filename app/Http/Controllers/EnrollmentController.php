@@ -31,6 +31,24 @@ class EnrollmentController extends Controller
         }
     }
 
+    public function allEnrolls()
+    {
+        try {
+            // Relations définies dans le modèle Enrollment
+            $enrollments = Enrollment::with(['user', 'formation', 'language'])->get();
+            return response()->json([
+                'success' => true,
+                'enrollments' => $enrollments
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching enrollments',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     /**
      * Show the form for creating a new resource.
      */
