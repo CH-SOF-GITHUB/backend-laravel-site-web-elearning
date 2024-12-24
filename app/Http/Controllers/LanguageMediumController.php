@@ -14,7 +14,7 @@ class LanguageMediumController extends Controller
             $languages = LanguageMedium::all();
             return response()->json([
                 'success' => true,
-                'data' => $languages
+                'languages' => $languages
             ], 200);
         } catch (\Exception $e) {
             return response()->json([

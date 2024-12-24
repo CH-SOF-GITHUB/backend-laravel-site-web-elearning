@@ -60,7 +60,7 @@ class EnrollmentController extends Controller
                 'errors' => $validator->errors()
             ], 400);
         }
-         
+
         try {
             // Vérifie si le cours existe
             $formation = Formation::findOrFail($courseId);
@@ -90,6 +90,15 @@ class EnrollmentController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $enrollment = Enrollment::findOrFail($id);
+        $enrollment->status = 'validated';
+        $enrollment->save();
+
+        return response()->json(['success' => true, 'message' => 'Status updated']);
     }
 
     /**

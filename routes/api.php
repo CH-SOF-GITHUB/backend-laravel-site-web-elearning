@@ -27,6 +27,8 @@ Route::group([
     Route::post('/profile', [AuthController::class, 'me'])->middleware('auth:api')->name('api.me');
 
     Route::middleware('auth:api')->prefix('user')->group(function () {
+        // Récupère tous les languges pour un cours
+        Route::get('/list_language_mediums', [LanguageMediumController::class, 'index']);        
         Route::prefix('courses/{courseId}')->group(function () {
             // Récupère tous les commentaires pour un cours
             Route::get('comments', [CommentController::class, 'index']);
@@ -38,6 +40,8 @@ Route::group([
             Route::get('enroll', [EnrollmentController::class, 'index']);
             // Inscription à un cours POST
             Route::post('enroll', [EnrollmentController::class, 'store']);
+            // update status enrollement by id
+            Route::put('/enroll/{id}/status', [EnrollmentController::class, 'updateStatus']);
         });
         Route::get('categories', [CategoryController::class, 'index']); // Specify method
         Route::get('courses', [FormationController::class, 'index']);
