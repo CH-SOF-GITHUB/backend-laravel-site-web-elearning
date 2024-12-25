@@ -70,6 +70,7 @@ class EnrollmentController extends Controller
             'language_id' => 'required|exists:language_mediums,id',
             'promo_code' => 'nullable|string|max:50',
             'comment' => 'nullable|string',
+            'start_date' => 'nullable|date',  // Add validation for start_date
         ]);
 
         if ($validator->fails()) {
@@ -94,6 +95,7 @@ class EnrollmentController extends Controller
                 'promo_code' => $request->promo_code,
                 'comment' => $request->comment,
                 'status' => 'draft', // Défaut
+                'start_date' => $request->start_date, // Store the start_date
             ]);
 
             return response()->json([
@@ -122,9 +124,31 @@ class EnrollmentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Enrollment $enrollment)
+    public function show($courseId, $enrollmentId)
     {
-        //
+        try {
+            // Récupérer l'enrollment par ID et vérifier si l'ID du cours correspond
+            $enrollment = Enrollment::where('formation_id', $courseId)
+                ->where('id', $enrollmentId)
+                ->with(['user', 'formation', 'language'])
+                ->firstOrFail();
+
+            return response()->json([
+                'success' => true,
+                'data' => $enrollment
+            ], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Enrollment not found'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching enrollment details',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -146,8 +170,27 @@ class EnrollmentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Enrollment $enrollment)
+    public function destroy($courseId, $enrollmentId)
     {
-        //
+        try {
+            // Récupérer l'enrollment et vérifier que le cours correspond
+            $enrollment = Enrollment::where('formation_id', $courseId)
+                ->where('id', $enrollmentId)
+                ->firstOrFail();
+
+            // Supprimer l'enregistrement
+            $enrollment->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Enrollment deleted successfully'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting enrollment',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

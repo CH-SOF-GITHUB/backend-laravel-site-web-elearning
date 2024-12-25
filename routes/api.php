@@ -42,6 +42,10 @@ Route::group([
             Route::get('enroll', [EnrollmentController::class, 'index']);
             // Inscription à un cours POST
             Route::post('enroll', [EnrollmentController::class, 'store']);
+            // Récupération enroll by id pour un cours
+            Route::get('/enroll/{enrollmentId}', [EnrollmentController::class, 'show']);
+            // supprimer enroll by id pour un cours
+            Route::delete('/enroll/{enrollmentId}', [EnrollmentController::class, 'destroy']);
             // update status enrollement by id
             Route::put('/enroll/{id}/status', [EnrollmentController::class, 'updateStatus']);
         });
@@ -65,6 +69,16 @@ Route::group([
 
             // afficher un commentaire par id 
             Route::get('comments/{commentId}', [CommentController::class, 'show']);
+            // Supprimer un commentaire spécifique
+            Route::delete('comments/{commentId}', [CommentController::class, 'destroy']);
+            // Inscription à un cours GET
+            Route::get('enroll', [EnrollmentController::class, 'index']);
+            // Inscription à un cours POST
+            Route::post('enroll', [EnrollmentController::class, 'store']);
+            // Récupération enroll by id pour un cours
+            Route::get('enroll/{enrollmentId}', [EnrollmentController::class, 'show']);
+            // supprimer enroll by id pour un cours
+            Route::delete('enroll/{enrollmentId}', [EnrollmentController::class, 'destroy']);
         });
         Route::resource('categories', CategoryController::class);
         Route::resource('courses', FormationController::class); // Specify method

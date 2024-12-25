@@ -18,6 +18,7 @@ class Enrollment extends Model
         'promo_code',
         'comment',
         // Pas besoin de l'inclure car 'draft' est défini par défaut
+        'start_date'
     ];
 
      // Relation avec le modèle User
