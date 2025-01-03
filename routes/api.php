@@ -59,7 +59,7 @@ Route::group([
     Route::get('/verify-payment', function (Request $request) {
         Stripe::setApiKey(env('STRIPE_SECRET'));
         $session = Session::retrieve($request->session_id);
-        
+
         if ($session->payment_status === 'paid') {
             // Récupérer l'inscription de l'utilisateur
             $user = Auth::user(); // Récupérer l'utilisateur authentifié
@@ -76,14 +76,17 @@ Route::group([
         }
         return response()->json(['status' => 'failed']);
     })->middleware('auth:api')->name('stripe.verify');
-    
+
 
     // API routes for handling API requests
     Route::middleware('auth:api')->prefix('user')->group(function () {
         // Récupère tous les languges pour un cours
         Route::get('/list_language_mediums', [LanguageMediumController::class, 'index']);
-        // Inscription à un cours GET
+        // Récupère toutes les cours GET
         Route::get('enrolled_courses', [EnrollmentController::class, 'allEnrolls']);
+        // Récupère toutes les cours par utilisateur GET
+        Route::get('enrollments', [EnrollmentController::class, 'allEnrollsByUser']);
+        // Récupération enroll by course
         Route::prefix('courses/{courseId}')->group(function () {
             // Récupère tous les commentaires pour un cours
             Route::get('comments', [CommentController::class, 'index']);
@@ -91,14 +94,14 @@ Route::group([
             Route::post('comments', [CommentController::class, 'store']);
             // Supprimer un commentaire spécifique
             Route::delete('comments/{commentId}', [CommentController::class, 'destroy']);
-            // Inscription à un cours GET
-            Route::get('enroll', [EnrollmentController::class, 'index']);
+            // Inscription à un cours GET 
+            Route::get('enroll', [EnrollmentController::class, 'index'])->where('courseId', '[0-9]+');
             // Inscription à un cours POST
             Route::post('enroll', [EnrollmentController::class, 'store']);
             // Récupération enroll by id pour un cours
-            Route::get('/enroll/{enrollmentId}', [EnrollmentController::class, 'show']);
+            Route::get('/enroll/{enrollmentId}', [EnrollmentController::class, 'show'])->where('enrollmentId', '[0-9]+');
             // supprimer enroll by id pour un cours
-            Route::delete('/enroll/{enrollmentId}', [EnrollmentController::class, 'destroy']);
+            Route::delete('/enroll/{enrollmentId}', [EnrollmentController::class, 'destroy'])->where('enrollmentId', '[0-9]+');;
             // update status enrollement by id
             Route::put('/enroll/{id}/status', [EnrollmentController::class, 'updateStatus']);
         });
@@ -125,13 +128,13 @@ Route::group([
             // Supprimer un commentaire spécifique
             Route::delete('comments/{commentId}', [CommentController::class, 'destroy']);
             // Inscription à un cours GET
-            Route::get('enroll', [EnrollmentController::class, 'index']);
+            Route::get('enroll', [EnrollmentController::class, 'index'])->where('courseId', '[0-9]+');
             // Inscription à un cours POST
             Route::post('enroll', [EnrollmentController::class, 'store']);
             // Récupération enroll by id pour un cours
-            Route::get('enroll/{enrollmentId}', [EnrollmentController::class, 'show']);
+            Route::get('enroll/{enrollmentId}', [EnrollmentController::class, 'show'])->where('enrollmentId', '[0-9]+');
             // supprimer enroll by id pour un cours
-            Route::delete('enroll/{enrollmentId}', [EnrollmentController::class, 'destroy']);
+            Route::delete('enroll/{enrollmentId}', [EnrollmentController::class, 'destroy'])->where('enrollmentId', '[0-9]+');
         });
         Route::resource('categories', CategoryController::class);
         Route::resource('courses', FormationController::class); // Specify method

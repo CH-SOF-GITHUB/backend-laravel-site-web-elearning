@@ -13,11 +13,15 @@ class EnrollmentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index($courseId)
     {
         try {
-            // Relations définies dans le modèle Enrollment
-            $enrollments = Enrollment::with(['user', 'formation', 'language'])->get();
+            // Filtrer les enrollments par user_id (utilisateur authentifié) et formation_id (ID du cours)
+            $enrollments = Enrollment::with(['user', 'formation', 'language'])
+                ->where('user_id', Auth::id())  // Assurez-vous que l'enregistrement appartient à l'utilisateur authentifié
+                ->where('formation_id', $courseId)  // Filtrer par l'ID du cours
+                ->get();
+
             return response()->json([
                 'success' => true,
                 'data' => $enrollments
@@ -31,11 +35,33 @@ class EnrollmentController extends Controller
         }
     }
 
+
     public function allEnrolls()
     {
         try {
             // Relations définies dans le modèle Enrollment
             $enrollments = Enrollment::with(['user', 'formation', 'language'])->get();
+            return response()->json([
+                'success' => true,
+                'enrollments' => $enrollments
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching enrollments',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function allEnrollsByUser()
+    {
+        try {
+            // Filtrer les enrollments par user_id de l'utilisateur connecté
+            $enrollments = Enrollment::with(['user', 'formation', 'language'])
+                ->where('user_id', Auth::id()) // Filtrer par l'utilisateur connecté
+                ->get();
+
             return response()->json([
                 'success' => true,
                 'enrollments' => $enrollments
@@ -127,9 +153,10 @@ class EnrollmentController extends Controller
     public function show($courseId, $enrollmentId)
     {
         try {
-            // Récupérer l'enrollment par ID et vérifier si l'ID du cours correspond
+            // Récupérer l'enrollment en filtrant par user_id, formation_id, et id
             $enrollment = Enrollment::where('formation_id', $courseId)
                 ->where('id', $enrollmentId)
+                ->where('user_id', Auth::id()) // Filtrer par utilisateur connecté
                 ->with(['user', 'formation', 'language'])
                 ->firstOrFail();
 
