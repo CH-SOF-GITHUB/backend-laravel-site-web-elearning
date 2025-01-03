@@ -9,9 +9,15 @@ use App\Http\Controllers\FormationController;
 use App\Http\Controllers\InscriptionController;
 use App\Http\Controllers\LanguageMediumController;
 use App\Http\Middleware\CorsMiddleware;
+use App\Models\Enrollment;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use Stripe\Stripe;
+use Stripe\Checkout\Session;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
+// API routes for handling API requests
 Route::group([
     // Add CorsMiddleware here for all routes in this group
     'middleware' => ['api', CorsMiddleware::class],
@@ -25,12 +31,59 @@ Route::group([
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:api')->name('api.logout');
     Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('auth:api')->name('api.refresh');
     Route::post('/profile', [AuthController::class, 'me'])->middleware('auth:api')->name('api.me');
+    // API STRIPE CHECKOUT
+    Route::post('/create-checkout-session', function (Request $request) {
+        Stripe::setApiKey(env('STRIPE_SECRET'));
 
+        $session = Session::create([
+            'payment_method_types' => ['card'],
+            'line_items' => [[
+                'price_data' => [
+                    'currency' => 'eur',
+                    'product_data' => [
+                        'name' => $request->course_title,
+                    ],
+                    'unit_amount' => $request->price * 100, // En centimes
+                ],
+                'quantity' => 1,
+            ]],
+            'mode' => 'payment',
+            'success_url' => env('FRONT_URL') . '/success?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => env('FRONT_URL') . '/cancel',
+        ]);
+
+        return response()->json(['id' => $session->id]);
+    })->middleware('auth:api')->name('stripe.initiate');
+
+    // API STRIPE VERIFY PAYMENT AND UPDATE ENROLLMENT STATUS
+    Route::get('/verify-payment', function (Request $request) {
+        Stripe::setApiKey(env('STRIPE_SECRET'));
+        $session = Session::retrieve($request->session_id);
+        
+        if ($session->payment_status === 'paid') {
+            // Récupérer l'inscription de l'utilisateur
+            $user = Auth::user(); // Récupérer l'utilisateur authentifié
+            $enrollment = Enrollment::where('user_id', $user->id)
+                ->where('status', 'draft') // Assurez-vous de cibler l'inscription correcte
+                ->first();
+
+            if ($enrollment) {
+                // Mettre à jour le statut d'inscription
+                $enrollment->status = 'validated';
+                $enrollment->save(); // Enregistrer les modifications
+            }
+            return response()->json(['status' => 'success']);
+        }
+        return response()->json(['status' => 'failed']);
+    })->middleware('auth:api')->name('stripe.verify');
+    
+
+    // API routes for handling API requests
     Route::middleware('auth:api')->prefix('user')->group(function () {
         // Récupère tous les languges pour un cours
-        Route::get('/list_language_mediums', [LanguageMediumController::class, 'index']); 
+        Route::get('/list_language_mediums', [LanguageMediumController::class, 'index']);
         // Inscription à un cours GET
-        Route::get('enrolled_courses', [EnrollmentController::class, 'allEnrolls']);       
+        Route::get('enrolled_courses', [EnrollmentController::class, 'allEnrolls']);
         Route::prefix('courses/{courseId}')->group(function () {
             // Récupère tous les commentaires pour un cours
             Route::get('comments', [CommentController::class, 'index']);
