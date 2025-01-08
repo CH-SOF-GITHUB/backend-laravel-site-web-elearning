@@ -27,6 +27,7 @@ Route::group([
     Route::post('/login', [AuthController::class, 'login'])->name('api.login');
     Route::resource('courses', FormationController::class);
     Route::resource('categories', CategoryController::class);
+    Route::get('categories/{id}/formations', [CategoryController::class, 'getFormations']);
     Route::get('/list_language_mediums', [LanguageMediumController::class, 'index'])->middleware('auth:api')->name('api.languages');;
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:api')->name('api.logout');
     Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('auth:api')->name('api.refresh');

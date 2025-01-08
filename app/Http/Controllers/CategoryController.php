@@ -17,13 +17,21 @@ class CategoryController extends Controller
         return response()->json(Category::all(), 200);
     }
 
+    public function getFormations($id)
+    {
+        $category = Category::with('formations')->find($id);
+
+        if (!$category) {
+            return response()->json(['message' => 'Category not found'], 404);
+        }
+
+        return response()->json($category->formations, 200);
+    }
+
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-
-    }
+    public function create() {}
 
     /**
      * Store a newly created resource in storage.
@@ -87,9 +95,42 @@ class CategoryController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Request $request, string $id)
     {
-        //
+        $category = Category::findOrFail($id);
+        $validatedData = $request->validate([
+            'category_name' => 'required|string|max:255',
+            'category_description' => 'nullable|string',
+            'photo' => [
+                'nullable',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->hasFile('photo')) {
+                        // Valider si c'est un fichier image
+                        $file = $request->file('photo');
+                        if (!$file->isValid() || !in_array($file->extension(), ['jpeg', 'png', 'jpg', 'gif'])) {
+                            $fail('The ' . $attribute . ' must be a valid image of type: jpeg, png, jpg, gif.');
+                        }
+                    } elseif (!filter_var($value, FILTER_VALIDATE_URL)) {
+                        // Valider si c'est une URL valide
+                        $fail('The ' . $attribute . ' must be a valid URL or an image.');
+                    }
+                }
+            ],
+        ]);
+
+        // Gérer l'upload de l'image
+        $photoPath = null;
+
+        if ($request->hasFile('photo')) {
+            // Stocker le fichier téléversé
+            $photoPath = $request->file('photo')->store('categories', 'public');
+        } elseif ($request->photo) {
+            // Prendre directement l'URL
+            $photoPath = $request->photo;
+        }
+
+        $category->update(array_merge($validatedData, ['photo' => $photoPath]));
+        return response()->json($category, 200);
     }
 
     /**
